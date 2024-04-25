@@ -32,31 +32,24 @@ def parse_course_details(course_html):
     try:
         course_block_title = clean_text(course_html.find('p', class_='courseblocktitle').get_text())
         
-        # Check if the title includes a sequence and skip it
         if '-' in course_block_title:  
             return None
 
-        # Remove ". 100 Units." if it appears in the course title
         course_block_title = course_block_title.replace('. 100 Units.', '')
         
-        # Split to get the course ID and the course name
         course_id, course_name = course_block_title.split('.', 1)
         course_id = course_id.strip()
         course_name = course_name.strip()
 
-        # Extract description
         description = clean_text(course_html.find('p', class_='courseblockdesc').get_text())
 
-        # Initialize defaults
         terms_offered = "Not specified"
         equivalent_courses = "None"
         instructors = "N/A"
         prerequisites = "None"
 
-        # Handling details text
         detail_info = clean_text(course_html.find('p', class_='courseblockdetail').get_text())
         
-        # Use regular expressions to extract various details
         terms_offered_match = re.search(r'Terms Offered: (.*?)(?:<br>|Equivalent Course\(s\)|Prerequisite\(s\)|Note\(s\)|$)', detail_info, re.DOTALL)
         if terms_offered_match:
             terms_offered = terms_offered_match.group(1).strip()
@@ -83,7 +76,7 @@ def parse_course_details(course_html):
             'Prerequisites': prerequisites
         }
     except AttributeError:
-        return None  # Safely handle unexpected HTML structures
+        return None  
 
 
     
@@ -118,20 +111,17 @@ def main():
             all_courses.extend(department_courses)
             print(f"Processed {len(department_courses)} courses from {department_name}")
 
-            # Add department data to the list
             department_data.append({
                 'Department': department_name,
                 'Number of Courses': len(department_courses)
             })
         
-        # Filter out None before creating DataFrame for catalog
         all_courses = [course for course in all_courses if course]
         catalog_df = pd.DataFrame(all_courses)
         catalog_file_path = os.path.join(os.getcwd(), 'catalog.csv')
         catalog_df.to_csv(catalog_file_path, index=False)
         print(f"Completed scraping, catalog saved at {catalog_file_path}")
 
-        # Create and save department DataFrame
         department_df = pd.DataFrame(department_data)
         department_file_path = os.path.join(os.getcwd(), 'department.csv')
         department_df.to_csv(department_file_path, index=False)
